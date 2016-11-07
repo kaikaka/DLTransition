@@ -7,14 +7,11 @@
 //
 
 import UIKit
+import Dispatch
 
 enum DLTransitionGestureRecognizerType:Int {
     case DLTransitionGestureRecognizerTypePan,
     DLTransitionGestureRecognizerEdgePan
-}
-
-struct Static {
-    static var dispacthOnceToken:dispatch_once_t = 0
 }
 
 var __DLTransitionGestureRecognizerType:DLTransitionGestureRecognizerType = .DLTransitionGestureRecognizerTypePan
@@ -22,15 +19,15 @@ var __DLTransitionGestureRecognizerType:DLTransitionGestureRecognizerType = .DLT
 class DLTransition: NSObject {
     
     class func validatePanBackWithDLTransitionGestureRecognizerType(type:DLTransitionGestureRecognizerType) {
-        dispatch_once(&Static.dispacthOnceToken) {
+        DispatchQueue.once(token: NSUUID().uuidString) { () in
             __DLTransitionGestureRecognizerType = type
-            DLTransition.___DLTransition_Swizzle(UINavigationController.classForCoder(), origSEL: #selector(UINavigationController.viewDidLoad), newSEL: #selector(UINavigationController.__DLTransition_Hook_ViewDidLoad))
+            DLTransition.___DLTransition_Swizzle(c: UINavigationController.classForCoder(), origSEL: #selector(UINavigationController.viewDidLoad), newSEL: #selector(UINavigationController.__DLTransition_Hook_ViewDidLoad))
         }
     }
     
     static func ___DLTransition_Swizzle(c:AnyClass,origSEL:Selector,newSEL:Selector) {
         var origMethod = class_getInstanceMethod(c,origSEL)
-        let newMethod:Method
+        let newMethod:Method?
         
         if origMethod == nil {
             origMethod = class_getClassMethod(c, origSEL)
@@ -59,9 +56,9 @@ extension UINavigationController:UIGestureRecognizerDelegate {
             return objc_getAssociatedObject(self, &k__DLTransition_GestureRecognizer) as! UIPanGestureRecognizer
         }
         set(newValue) {
-            self.willChangeValueForKey(k__DLTransition_GestureRecognizer)
+            self.willChangeValue(forKey: k__DLTransition_GestureRecognizer)
             objc_setAssociatedObject(self, &k__DLTransition_GestureRecognizer, newValue, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-            self.didChangeValueForKey(k__DLTransition_GestureRecognizer)
+            self.didChangeValue(forKey: k__DLTransition_GestureRecognizer)
         }
     }
     
@@ -70,14 +67,14 @@ extension UINavigationController:UIGestureRecognizerDelegate {
     func __DLTransition_Hook_ViewDidLoad() {
         self.__DLTransition_Hook_ViewDidLoad()
         
-        if self.interactivePopGestureRecognizer?.delegate?.isKindOfClass(UIPercentDrivenInteractiveTransition.classForCoder()) == true {
+        if self.interactivePopGestureRecognizer?.delegate?.isKind(of: UIPercentDrivenInteractiveTransition.classForCoder()) == true {
             var gestureRecognizer:UIPanGestureRecognizer!
             let  kHandleNavigationTransitionKey:NSString = "nTShMTkyGzS2nJquqTyioyElLJ5mnKEco246".__dlDecryptString()
             
             if __DLTransitionGestureRecognizerType == DLTransitionGestureRecognizerType.DLTransitionGestureRecognizerEdgePan {
                 gestureRecognizer = UIScreenEdgePanGestureRecognizer.init(target: self.interactivePopGestureRecognizer?.delegate, action:NSSelectorFromString(kHandleNavigationTransitionKey as String))
                 let edgeRecognizer = gestureRecognizer as! UIScreenEdgePanGestureRecognizer
-                edgeRecognizer.edges = UIRectEdge.Left
+                edgeRecognizer.edges = UIRectEdge.left
             } else {
                 gestureRecognizer = UIPanGestureRecognizer.init(target: self.interactivePopGestureRecognizer?.delegate, action: NSSelectorFromString(kHandleNavigationTransitionKey as String))
             }
@@ -85,7 +82,7 @@ extension UINavigationController:UIGestureRecognizerDelegate {
             gestureRecognizer.delegate = self
             gestureRecognizer.__DLTransition_NavController = self
             self.__DLTransition_PanGestureRecognizer = gestureRecognizer
-            self.interactivePopGestureRecognizer?.enabled = false
+            self.interactivePopGestureRecognizer?.isEnabled = false
         }
         self.view.addGestureRecognizer(self.__DLTransition_PanGestureRecognizer)
     }
@@ -93,16 +90,16 @@ extension UINavigationController:UIGestureRecognizerDelegate {
     //MARK: - UIGestureRecognizerDelegate
     public func gestureRecognizerShouldBegin(gestureRecognizer: UIGestureRecognizer) -> Bool {
         let navVC:UINavigationController = self
-        if navVC.transitionCoordinator()?.isAnimated() == true ||
+        if navVC.transitionCoordinator?.isAnimated == true ||
             navVC.viewControllers.count < 2 {
-                return false
+            return false
         }
         let view:UIView = gestureRecognizer.view!
         if view.disableDLTransition == false {
             return false
         }
-        let loc:CGPoint = gestureRecognizer.locationInView(view)
-        let subView = view.hitTest(loc, withEvent: nil)
+        let loc:CGPoint = gestureRecognizer.location(in: view)
+        let subView = view.hitTest(loc, with: nil)
         var superView = subView
         while superView != view {
             if superView?.disableDLTransition == true {
@@ -112,11 +109,11 @@ extension UINavigationController:UIGestureRecognizerDelegate {
         }
         if __DLTransitionGestureRecognizerType == DLTransitionGestureRecognizerType.DLTransitionGestureRecognizerTypePan {
             let panRecognizer = gestureRecognizer as! UIPanGestureRecognizer
-            let velocity = panRecognizer.velocityInView(navVC.view)
+            let velocity = panRecognizer.velocity(in: navVC.view)
             if velocity.x <= 0 {
                 return false
             }
-            var translation = panRecognizer.translationInView(navVC.view)
+            var translation = panRecognizer.translation(in: navVC.view)
             translation.x = translation.x == 0 ? 0.0:translation.x
             let ratio = fabs(translation.y)/fabs(translation.x)
             if translation.y>0 && ratio>0.618 ||
@@ -129,7 +126,7 @@ extension UINavigationController:UIGestureRecognizerDelegate {
     }
     
     func enabledMLTransition(enable:Bool) {
-        self.__DLTransition_PanGestureRecognizer.enabled = enable
+        self.__DLTransition_PanGestureRecognizer.isEnabled = enable
     }
 }
 
@@ -141,9 +138,9 @@ extension UIGestureRecognizer {
             return objc_getAssociatedObject(self, &k_DLTransition_NavController_OfPan) as! UINavigationController
         }
         set (newValue) {
-            self.willChangeValueForKey(k_DLTransition_NavController_OfPan)
+            self.willChangeValue(forKey: k_DLTransition_NavController_OfPan)
             objc_setAssociatedObject(self, &k_DLTransition_NavController_OfPan, newValue, objc_AssociationPolicy.OBJC_ASSOCIATION_ASSIGN)
-            self.didChangeValueForKey(k_DLTransition_NavController_OfPan)
+            self.didChangeValue(forKey: k_DLTransition_NavController_OfPan)
         }
     }
     
@@ -156,9 +153,9 @@ extension UIView {
             return objc_getAssociatedObject(self, &k_DLTransition_UIView_DisableMLTransition) as? Bool
         }
         set (newValue) {
-            self.willChangeValueForKey(k_DLTransition_UIView_DisableMLTransition)
+            self.willChangeValue(forKey: k_DLTransition_UIView_DisableMLTransition)
             objc_setAssociatedObject(self, &k_DLTransition_UIView_DisableMLTransition, newValue, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-            self.didChangeValueForKey(k_DLTransition_UIView_DisableMLTransition)
+            self.didChangeValue(forKey: k_DLTransition_UIView_DisableMLTransition)
         }
     }
     
@@ -168,14 +165,15 @@ extension UIScrollView {
     
     public func gestureRecognizer(gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWithGestureRecognizer otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         if gestureRecognizer .isEqual(self.panGestureRecognizer) {
-            if otherGestureRecognizer .isMemberOfClass(UIPanGestureRecognizer.classForCoder()) {
-                var location = otherGestureRecognizer.locationInView(otherGestureRecognizer.view)
+            if otherGestureRecognizer.isMember(of:UIPanGestureRecognizer.classForCoder()) {
+                var location = otherGestureRecognizer.location(in: otherGestureRecognizer.view)
                 if location.x <= 10.0 {
                     return true
                 }
                 func isHorizontalBlock(scrollView:UIScrollView)->(Bool) {
-                    if CGAffineTransformEqualToTransform(CGAffineTransformMakeRotation(-CGFloat(M_PI*0.5)), scrollView.transform) ||
-                        CGAffineTransformEqualToTransform(CGAffineTransformMakeRotation(CGFloat(M_PI * 0.5)), scrollView.transform){
+                    
+                    if CGAffineTransform(rotationAngle: -CGFloat(M_PI*0.5)) == scrollView.transform ||
+                        CGAffineTransform(rotationAngle: CGFloat(M_PI * 0.5)) == scrollView.transform{
                         return true
                     } else {
                         if scrollView.contentSize.width > scrollView.frame.size.width {
@@ -187,8 +185,8 @@ extension UIScrollView {
                 var superView = self;
                 
                 while !superView .isEqual(otherGestureRecognizer.__DLTransition_NavController.view) {
-                    if superView.isKindOfClass(UIScrollView.classForCoder()) {
-                        if isHorizontalBlock(superView) {
+                    if superView.isKind(of: UIScrollView.classForCoder()) {
+                        if isHorizontalBlock(scrollView: superView) {
                             return false
                         }
                         superView = superView.superview as! UIScrollView
@@ -204,15 +202,15 @@ extension UIScrollView {
 extension NSString {
     
     func __dlEncryptString() -> NSString{
-        let data:NSData = self.dataUsingEncoding(NSUTF8StringEncoding)!
-        let base64 = data.base64EncodedStringWithOptions(.Encoding64CharacterLineLength)
-        return base64
+        let data:NSData = self.data(using: String.Encoding.utf8.rawValue)! as NSData
+        let base64 = data.base64EncodedString(options: .lineLength64Characters)
+        return base64 as NSString
     }
     
     func __dlDecryptString() -> NSString {
         let rot13 = self.__dlRot13()
-        let data = NSData.init(base64EncodedString: rot13 as String, options: .IgnoreUnknownCharacters)
-        return NSString.init(data: data!, encoding: NSUTF8StringEncoding)!
+        let data = NSData.init(base64Encoded: rot13 as String, options: .ignoreUnknownCharacters)
+        return NSString.init(data: data! as Data, encoding: String.Encoding.utf8.rawValue)!
     }
     
     func __dlRot13() -> NSString {
@@ -220,21 +218,21 @@ extension NSString {
         let dest = NSMutableString.init(capacity: self.length)
         
         for c in 0  ..< self.length  {
-            var asciiCode = self.characterAtIndex(c)
+            var asciiCode = self.character(at: c)
             let A = "A" as NSString
             let Z = "Z" as NSString
             let a = "a" as NSString
             let z = "z" as NSString
-            if asciiCode > A.characterAtIndex(0) && asciiCode <= Z.characterAtIndex(0) {
-                asciiCode = (asciiCode - A.characterAtIndex(0) + 13) % 26 + A.characterAtIndex(0)
-            } else if asciiCode > a.characterAtIndex(0) && asciiCode <= z.characterAtIndex(0) {
-                asciiCode = (asciiCode - a.characterAtIndex(0) + 13) % 26 + a.characterAtIndex(0)
+            if asciiCode > A.character(at: 0) && asciiCode <= Z.character(at: 0) {
+                asciiCode = (asciiCode - A.character(at: 0) + 13) % 26 + A.character(at: 0)
+            } else if asciiCode > a.character(at: 0) && asciiCode <= z.character(at: 0) {
+                asciiCode = (asciiCode - a.character(at: 0) + 13) % 26 + a.character(at: 0)
             }
             
-            dest.appendString("\(Character(UnicodeScalar(asciiCode)))")
+            dest.append("\(Character(UnicodeScalar(asciiCode)!))")
         }
         
-        dest.appendString("\0")
+        dest.append("\0")
         
         return dest
     }
@@ -247,11 +245,25 @@ extension NSString {
     }
     
     func ASCII(c:String) -> Int8? {
-        let str:NSString = c
-        let n = str.UTF8String[0]
-        guard n>=0 else {
+        let str:NSString = c as NSString
+        let n = str.utf8String?[0]
+        guard n!>=0 else {
             return nil
         }
         return n
+    }
+}
+
+extension DispatchQueue {
+    private static var _onceTracker = [String]()
+    public class func once(token: String, block:(Void)->Void) {
+        objc_sync_enter(self); defer { objc_sync_exit(self) }
+        
+        if _onceTracker.contains(token) {
+            return
+        }
+        
+        _onceTracker.append(token)
+        block()
     }
 }

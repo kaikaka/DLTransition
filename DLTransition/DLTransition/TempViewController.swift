@@ -19,13 +19,13 @@ class TempViewController: UIViewController {
         get {
             if _imageView == nil {
                 _imageView = UIImageView.init()
-                if (self.navigationController?.viewControllers.indexOf(self))!%2 == 0 {
+                if (self.navigationController?.viewControllers.index(of: self))!%2 == 0 {
                     _imageView.image = UIImage.init(named: "IMG_2079")
                 } else {
                     _imageView.image = UIImage.init(named:"IMG_2078.jpg")
                 }
-                _imageView.contentMode = .ScaleAspectFit
-                _imageView.userInteractionEnabled = true
+                _imageView.contentMode = .scaleAspectFit
+                _imageView.isUserInteractionEnabled = true
             }
             return _imageView
         }
@@ -34,20 +34,20 @@ class TempViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.view.backgroundColor = UIColor.whiteColor()
+        self.view.backgroundColor = UIColor.white
         // Do any additional setup after loading the view.
         
-        let rightBar = UIBarButtonItem.init(title: "cessss", style: .Plain, target: self, action: nil)
-        rightBar.tintColor = UIColor.whiteColor()
+        let rightBar = UIBarButtonItem.init(title: "cessss", style: .plain, target: self, action: nil)
+        rightBar.tintColor = UIColor.white
         self.navigationItem.leftBarButtonItem = rightBar
         
-        let lastIndex = (self.navigationController?.viewControllers.indexOf(self))!-1
+        let lastIndex = (self.navigationController?.viewControllers.index(of: self))!-1
         var lastColor:UIColor = UIColor.init()
-        if lastIndex < self.navigationController?.viewControllers.count {
+        if lastIndex < (self.navigationController?.viewControllers.count)! {
             let viewController = self.navigationController?.viewControllers[lastIndex]
             lastColor = (viewController?.view.backgroundColor)!
         }
-        let colors = [UIColor.whiteColor(),UIColor.lightGrayColor()]
+        let colors = [UIColor.white,UIColor.lightGray]
         
         var bkgColor = colors[Int(arc4random())%colors.count]
         while bkgColor.isEqual(lastColor) {
@@ -58,20 +58,20 @@ class TempViewController: UIViewController {
         
         self.view.addSubview(self.imageView)
         
-        let gesture = UITapGestureRecognizer.init(target: self, action:#selector(pressed(_:)))
+        let gesture = UITapGestureRecognizer.init(target: self, action:#selector(pressed(sender:)))
         self.imageView.addGestureRecognizer(gesture)
-        let c = (self.navigationController?.viewControllers.indexOf(self))!%2
+        let c = (self.navigationController?.viewControllers.index(of: self))!%2
         if c == 0 {
             self.title = "一张照片"
         } else {
             self.title = "LIKESTYLE"
         }
-        self.navigationItem.leftBarButtonItem = UIBarButtonItem.init(title: "<", style: .Plain, target: self, action: #selector(pop(_:)))
+        self.navigationItem.leftBarButtonItem = UIBarButtonItem.init(title: "<", style: .plain, target: self, action: #selector(pop(sender:)))
         
     }
     
     func pop(sender:UIBarButtonItem) {
-        self.navigationController?.popViewControllerAnimated(true)
+        _ = self.navigationController?.popViewController(animated: true)
     }
     func pressed(sender:UITapGestureRecognizer) {
         let vc = TempViewController.init()

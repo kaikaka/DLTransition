@@ -39,10 +39,10 @@ class DLTransition: NSObject {
         if origMethod == nil || newMethod == nil {
             return
         }
-        if class_addMethod(c, origSEL, method_getImplementation(newMethod), method_getTypeEncoding(newMethod)) {
-            class_replaceMethod(c, newSEL, method_getImplementation(origMethod), method_getTypeEncoding(origMethod))
+        if class_addMethod(c, origSEL, method_getImplementation(newMethod!), method_getTypeEncoding(newMethod!)) {
+            class_replaceMethod(c, newSEL, method_getImplementation(origMethod!), method_getTypeEncoding(origMethod!))
         } else {
-            method_exchangeImplementations(origMethod, newMethod)
+            method_exchangeImplementations(origMethod!, newMethod!)
         }
     }
 }
@@ -64,7 +64,7 @@ extension UINavigationController:UIGestureRecognizerDelegate {
     
     
     //MARK: Hook
-    func __DLTransition_Hook_ViewDidLoad() {
+    @objc func __DLTransition_Hook_ViewDidLoad() {
         self.__DLTransition_Hook_ViewDidLoad()
         
         if self.interactivePopGestureRecognizer?.delegate?.isKind(of: UIPercentDrivenInteractiveTransition.classForCoder()) == true {
@@ -256,7 +256,7 @@ extension NSString {
 
 extension DispatchQueue {
     private static var _onceTracker = [String]()
-    public class func once(token: String, block:(Void)->Void) {
+    public class func once(token: String, block:()->Void) {
         objc_sync_enter(self); defer { objc_sync_exit(self) }
         
         if _onceTracker.contains(token) {

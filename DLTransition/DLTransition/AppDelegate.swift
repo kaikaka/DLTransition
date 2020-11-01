@@ -13,7 +13,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
     
-    func application(_ application: UIApplication, willFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey : Any]? = nil) -> Bool {
+    func application(_ application: UIApplication, willFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         
         DLTransition.validatePanBackWithDLTransitionGestureRecognizerType(type: .DLTransitionGestureRecognizerEdgePan)
         
@@ -28,13 +28,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         UINavigationBar.appearance().barTintColor = navBarColor
         
         let attributes = NSMutableDictionary.init(capacity: 0)
-        attributes.setValue(UIFont.boldSystemFont(ofSize: 18.0), forKeyPath: NSFontAttributeName)
-        attributes.setValue(navBarTintColor, forKeyPath: NSForegroundColorAttributeName)
+        attributes.setValue(UIFont.boldSystemFont(ofSize: 18.0), forKeyPath: NSAttributedString.Key.font.rawValue)
+        attributes.setValue(navBarTintColor, forKeyPath: NSAttributedString.Key.foregroundColor.rawValue)
         
         let shadow = NSShadow.init()
         shadow.shadowColor = UIColor.clear
-        attributes.setValue(shadow, forKeyPath: NSShadowAttributeName)
-        UINavigationBar.appearance().titleTextAttributes = attributes as NSDictionary as? [String : AnyObject]
+        attributes.setValue(shadow, forKeyPath: NSAttributedString.Key.shadow.rawValue)
+        UINavigationBar.appearance().titleTextAttributes = attributes as? [NSAttributedString.Key : Any]
         
     }
     func applicationWillResignActive(_ application: UIApplication) {

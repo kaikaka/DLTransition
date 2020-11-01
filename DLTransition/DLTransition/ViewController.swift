@@ -30,7 +30,7 @@ class ViewController: UIViewController,UIImagePickerControllerDelegate,UINavigat
     @IBAction func selectImage(sender: AnyObject) {
         let imagePicker = UIImagePickerController.init()
         imagePicker.delegate = self
-        imagePicker.sourceType = UIImagePickerControllerSourceType.photoLibrary;
+        imagePicker.sourceType = UIImagePickerController.SourceType.photoLibrary;
         
         imagePicker.allowsEditing = false
         

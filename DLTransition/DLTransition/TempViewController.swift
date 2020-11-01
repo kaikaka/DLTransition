@@ -70,10 +70,10 @@ class TempViewController: UIViewController {
         
     }
     
-    func pop(sender:UIBarButtonItem) {
+    @objc func pop(sender:UIBarButtonItem) {
         _ = self.navigationController?.popViewController(animated: true)
     }
-    func pressed(sender:UITapGestureRecognizer) {
+    @objc func pressed(sender:UITapGestureRecognizer) {
         let vc = TempViewController.init()
         self.navigationController?.pushViewController(vc, animated: true)
         

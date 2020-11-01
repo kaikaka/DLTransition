@@ -5,7 +5,7 @@
 <https://github.com/molon/MLTransition>
 
 原理分析
-<http://yoon.farbox.com/post/du-yuan-ma/2016-04-11>
+<https://kakakai.com/2016/04/11/ReadSource/2016-04-11/>
 
 Usage
 
